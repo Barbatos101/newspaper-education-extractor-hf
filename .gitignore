@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtual envs
+.venv/
+venv/
+newspaper-env/
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Project artifacts
+output/
+# Track model weights and sample PDFs (remove ignores)
+# models/*.pt
+# input/*.pdf
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Logs
+*.log
+

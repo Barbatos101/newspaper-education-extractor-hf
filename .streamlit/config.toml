@@ -1,0 +1,10 @@
+[server]
+# Port will be set by Cloud Run via $PORT environment variable
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 25
+
+[browser]
+serverAddress = "0.0.0.0"
+gatherUsageStats = false
