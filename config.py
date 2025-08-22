@@ -1,27 +1,28 @@
-from pathlib import Path
 import os
+from pathlib import Path
 import requests
 import logging
 
 # Set environment variables
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+# Detect if running on Hugging Face Spaces
+IS_SPACES = os.getenv("SPACE_ID") is not None
+
 # Project paths
 PROJECT_ROOT = Path(__file__).parent
 MODEL_PATH = PROJECT_ROOT / "models" / "bestmodel.pt"
-INPUT_DIR = PROJECT_ROOT / "input"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 
-# Create necessary directories
+# Create directories
 for d in [OUTPUT_DIR / "images", OUTPUT_DIR / "crops", OUTPUT_DIR / "results"]:
     d.mkdir(parents=True, exist_ok=True)
 
 def ensure_model_downloaded():
     """Download model from GitHub Release if not present"""
     if not MODEL_PATH.exists():
-        print("Model not found. Downloading from GitHub Release...")
-        # Updated URL for your repo
-        url = "https://github.com/Barbatos101/newspaper-education-extractor/releases/download/v1.0/bestmodel.pt"
+        print("Downloading YOLO model from GitHub Release...")
+        url = "https://github.com/Barbatos101/newspaper-education-extractor-hf/releases/download/v1.0/bestmodel.pt"
         
         try:
             MODEL_PATH.parent.mkdir(exist_ok=True)
@@ -38,19 +39,19 @@ def ensure_model_downloaded():
                         if total_size > 0:
                             percent = (downloaded / total_size) * 100
                             print(f"\rDownload progress: {percent:.1f}%", end='')
-            print(f"\nModel downloaded successfully to {MODEL_PATH}")
+            print(f"\nModel downloaded to {MODEL_PATH}")
         except Exception as e:
-            logging.error(f"Failed to download model: {e}")
+            print(f"Error downloading model: {e}")
             raise
 
 # Download model on import
 ensure_model_downloaded()
 
-# Cloud Run optimized settings
+# Optimized settings for Hugging Face Spaces
 CONFIDENCE_THRESHOLD = float(os.getenv('CONFIDENCE_THRESHOLD', '0.68'))
 KEYWORD_MIN_MATCH = int(os.getenv('KEYWORD_MIN_MATCH', '2'))
 
-# Education keywords
+# Enhanced education keywords for semantic filtering
 EDUCATION_KEYWORDS = [
     'school', 'schools', 'education', 'educational',
     'student', 'students', 'teacher', 'teachers',
@@ -59,7 +60,9 @@ EDUCATION_KEYWORDS = [
     'scholarship', 'principal', 'kindergarten', 'elementary',
     'secondary', 'admission', 'enrollment', 'faculty', 'campus',
     'homework', 'textbook', 'library', 'semester', 'grade',
-    'syllabus', 'tuition', 'institute', 'staff', 'board'
+    'syllabus', 'tuition', 'institute', 'staff', 'board',
+    'lesson', 'lessons', 'instructor', 'pupil', 'pupils', 
+    'academy', 'preschool', 'high school', 'primary'
 ]
 
 # OCR settings
@@ -67,14 +70,30 @@ OCR_LANG = "eng"
 OCR_PSM_PRIMARY = 6
 OCR_PSM_FALLBACK = 4
 
-# Threading - optimized for Cloud Run
-NUM_WORKERS = int(os.getenv('NUM_WORKERS', '1'))
+# Threading - optimized for Spaces
+NUM_WORKERS = 1
 
-# Summarization settings
-SUMMARIZATION_MODEL = "sshleifer/distilbart-cnn-12-6"
-MAX_SUMMARY_LENGTH = int(os.getenv('MAX_SUMMARY_LENGTH', '120'))
-MAX_INPUT_CHARS_FOR_SUMMARY = int(os.getenv('MAX_INPUT_CHARS_FOR_SUMMARY', '1200'))
+# Enhanced LLM settings with semantic analysis
+SUMMARIZATION_MODEL = "facebook/bart-large-cnn"
+MAX_SUMMARY_LENGTH = 120
+MAX_INPUT_CHARS_FOR_SUMMARY = 1200
 
-# Performance optimization for Cloud Run
-REDUCED_DPI = int(os.getenv('REDUCED_DPI', '150'))
+# Performance optimization for Spaces
+REDUCED_DPI = 150 if IS_SPACES else 200
 SEMANTIC_THRESHOLD = 0.35
+SEMANTIC_MODEL = "all-MiniLM-L6-v2"
+
+# Semantic context patterns
+EDUCATION_CONTEXTS = [
+    "school education", "student performance", "teacher training",
+    "educational system", "learning outcomes", "curriculum development",
+    "academic achievement", "classroom instruction", "school administration",
+    "educational policy", "student assessment", "language policy"
+]
+
+# Context exclusions for better filtering
+CONTEXT_EXCLUSIONS = [
+    'weather', 'temperature', 'heat', 'celsius', 'fahrenheit',
+    'clinical study', 'medical study', 'market research', 'data analysis',
+    'laboratory experiment', 'scientific research', 'thermal', 'climate'
+]
