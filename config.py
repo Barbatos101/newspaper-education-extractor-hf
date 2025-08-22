@@ -48,7 +48,7 @@ def ensure_model_downloaded():
 ensure_model_downloaded()
 
 # Optimized settings for Hugging Face Spaces
-CONFIDENCE_THRESHOLD = float(os.getenv('CONFIDENCE_THRESHOLD', '0.68'))
+CONFIDENCE_THRESHOLD = float(os.getenv('CONFIDENCE_THRESHOLD', '0.78'))
 KEYWORD_MIN_MATCH = int(os.getenv('KEYWORD_MIN_MATCH', '2'))
 
 # Enhanced education keywords for semantic filtering
